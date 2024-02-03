@@ -5,7 +5,7 @@ data class Post(
     val fromId: Int,                    // Идентификатор автора записи (от чьего имени опубликована запись)
     val text: String,                   // Текст записи
     val likes: Likes? = Likes(),
-    val replyPostId: Int? = null,          // Идентификатор записи, в ответ на которую была оставлена текущая
+    val replyPostId: Int? = null,       // Идентификатор записи, в ответ на которую была оставлена текущая
     val friendsOnly: Boolean = false,   // Eсли запись была создана с опцией «Только для друзей»
     val date: Int = 0,                  // Время публикации записи
     val canPin: Boolean = true,         // может ли текущий пользователь закрепить запись
@@ -17,10 +17,32 @@ data class Post(
 
 data class Likes(var likes: Int = 0)
 
+data class Comment(val id: Int, val postID: Int, val fromId: Int, val text: String)
+
+class PostNotFoundException(message: String) : RuntimeException(message)
 object WallService {
 
     var posts = emptyArray<Post>()
     var lastPostId = 0
+    var comments = emptyArray<Comment>()
+
+    fun createComment(postID: Int, comment: Comment): Comment {
+        val post = posts.find { it.id == postID }
+        if (post != null) {
+            comments += comment.copy(id = comments.size +1, postID = postID)
+            return comments.last()
+        } else {
+            throw PostNotFoundException("Пост с id $postID не найден")
+        }
+    }
+
+    fun printComments() {
+        for (comment in comments) {
+            println(comment)
+            print(" ")
+            println()
+        }
+    }
 
     fun clear() {
         posts = emptyArray()
@@ -94,10 +116,10 @@ fun main() {
     val photoAttachment = PhotoAttachment(Photo(1, 1, 200, "photo_604_url"))
     val audioAttachment = AudioAttachment(Audio(3, 2, "My favourite song", 188))
     val videoAttachment = VideoAttachment(Video(1, 1, "A fun cat video", 30))
-    val documentAttachment = DocumentAttachment(Document(2,4,"document", 50,"url_doc"))
-    val linkAttachment = LinkAttachment(Link("link_url", "The Last of Us", "Game","Link to the game"))
-
-    WallService.add(Post(1, 223894, " Hi", likes))
+    val documentAttachment = DocumentAttachment(Document(2, 4, "document", 50, "url_doc"))
+    val linkAttachment = LinkAttachment(Link("link_url", "The Last of Us", "Game", "Link to the game"))
+    val comment =
+        WallService.add(Post(1, 223894, " Hi", likes))
     WallService.add(Post(3, 672856284, " Hello"))
     WallService.printPosts()
     likes.likes = 100
@@ -119,4 +141,10 @@ fun main() {
         )
     )
     WallService.printPosts()
+
+    WallService.createComment(1, Comment(1, 1, 234, "Comment on first post"))
+    WallService.printComments()
+
+    WallService.createComment(132, Comment(1, 132, 234, "Comment on non-existing post"))
+    WallService.printComments()
 }

@@ -2,7 +2,9 @@ import org.junit.Test
 
 import org.junit.Assert.*
 import org.junit.Before
+import ru.netology.Comment
 import ru.netology.Post
+import ru.netology.PostNotFoundException
 import ru.netology.WallService
 
 class WallServiceTest {
@@ -46,5 +48,19 @@ class WallServiceTest {
         val updatedPost = Post(1, 75880, "I am Scatman")
         WallService.update(updatedPost)
         assertEquals(updatedPost, WallService.posts.last())
+    }
+
+    @Test
+    fun createComment() {
+        val newLastCommentId = WallService.comments.size
+        WallService.add(Post(1, 213, "Post 1"))
+        WallService.createComment(1, Comment(1, 1, 325354, "Comment"))
+        assertEquals( newLastCommentId + 1, WallService.comments.size)
+    }
+
+    @Test(expected = PostNotFoundException::class)
+    fun shouldThrow() {
+        WallService.add(Post(1, 213, "Post 1"))
+        WallService.createComment(123, Comment(1, 123, 325354, "Comment"))
     }
 }
